@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overleaf-Ready Vim Editor (Ace)</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/keybinding-vim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode/latex.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/theme/monokai.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/theme/solarized_light.js"></script>
+
+    <style>
+        /* --- Dark Mode (Default) Styles --- */
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0; padding: 20px;
+            background-color: #181a1b; color: #e8e6e3;
+        }
+        .status-bar {
+            font-size: 13px; font-family: monospace;
+            background-color: #202324; padding: 8px 15px;
+            margin-bottom: 15px; border-radius: 4px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #3a3f41;
+        }
+        .layout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 85vh;
+        }
+        #editor {
+            height: 100%;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #545b5e;
+        }
+        #preview {
+            height: 100%; padding: 15px; box-sizing: border-box;
+            background-color: #202324; border: 1px solid #3a3f41;
+            border-radius: 6px; overflow-y: auto; white-space: pre-wrap;
+            color: #e8e6e3;
+        }
+        .katex-inline { display: inline-block; padding: 0 4px; }
+        
+        #theme-toggle {
+            background-color: #3a3f41; color: #e8e6e3;
+            border: 1px solid #545b5e; padding: 4px 12px;
+            border-radius: 4px; cursor: pointer;
+            font-family: system-ui, sans-serif; font-size: 12px;
+        }
+        #theme-toggle:hover {
+            background-color: #484e51;
+        }
+        .ace_cursor {
+            animation: none !important;
+        }
+
+        /* --- Warm, High-Readability Light Mode Override Styles --- */
+        body.light-mode {
+            background-color: #fdf6e3; color: #000000;
+        }
+        body.light-mode .status-bar {
+            background-color: #eee8d5; border-color: #93a1a1; color: #000000;
+        }
+        body.light-mode #save-status {
+            color: #2e6930 !important; /* Deep, clear forest green for crisp readability */
+            font-weight: bold;
+        }
+        body.light-mode #editor {
+            border-color: #93a1a1;
+        }
+        /* Target default text tokens in Ace to be rich, pure black instead of solarized grey */
+        body.light-mode .ace_editor .ace_line {
+            color: #000000 !important;
+            font-weight: 500 !important;
+        }
+        body.light-mode #preview {
+            background-color: #fdf6e3; border-color: #93a1a1; color: #000000;
+        }
+        body.light-mode #theme-toggle {
+            background-color: #eee8d5; color: #000000; border-color: #93a1a1;
+        }
+        body.light-mode #theme-toggle:hover {
+            background-color: #e4ddcb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="status-bar">
+        <div>
+            <span id="save-status" style="color: #a6e22e; font-weight: bold;">Loading file...</span>
+        </div>
+        <button id="theme-toggle">🌙 Dark Mode</button>
+    </div>
+    
+    <div class="layout">
+        <div id="editor"></div>
+        <div id="preview"></div>
+    </div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const preview = document.getElementById('preview');
+    const status = document.getElementById('save-status');
+    const themeToggle = document.getElementById('theme-toggle');
+    let saveTimeout;
+
+    // 1. Initialize Ace Editor Instance
+    const editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/latex");
+    editor.setOption("keyboardHandler", "ace/keyboard/vim");
+    editor.setOption("cursorStyle", "block"); 
+    editor.setOption("showPrintMargin", false);
+    editor.session.setUseWrapMode(true); 
+
+    // Extract the internal CodeMirror Vim emulator instance
+    const vim = ace.require("ace/keyboard/vim").CodeMirror.Vim;
+    vim.setOption('clipboard', 'unnamed');
+
+    // Instant Theme Toggle Logic
+    themeToggle.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-mode');
+        if (isLight) {
+            editor.setTheme("ace/theme/solarized_light");
+            themeToggle.innerText = "☀️ Light Mode";
+        } else {
+            editor.setTheme("ace/theme/monokai");
+            themeToggle.innerText = "🌙 Dark Mode";
+        }
+    });
+
+    // Math rendering parser
+    function processAndRender() {
+        let text = editor.getValue();
+        text = text.replace(/%.*(?:\r?\n|$)/g, '');
+
+        // Process block math $$...$$
+        text = text.replace(/\$\$([\s\S]*?)\$\$\s*/g, (match, mathContent) => {
+            try {
+                return katex.renderToString(mathContent.trim(), { displayMode: true, throwOnError: false });
+            } catch (err) { return `<span style="color:red">${err.message}</span>`; }
+        });
+
+        // Process inline math $...$
+        text = text.replace(/(?<!\$)\$([\s\S]*?)\$(?!\$)/g, (match, mathContent) => {
+            try {
+                return `<span class="katex-inline">${katex.renderToString(mathContent.trim(), { displayMode: false, throwOnError: false })}</span>`;
+            } catch (err) { return `<span style="color:red">${err.message}</span>`; }
+        });
+
+        preview.innerHTML = text;
+    }
+
+    // Auto-save logic
+    function autoSaveBackend() {
+        status.innerText = "Typing...";
+        clearTimeout(saveTimeout);
+        
+        saveTimeout = setTimeout(() => {
+            status.innerText = "Saving...";
+            fetch('/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: editor.getValue() })
+            })
+            .then(res => {
+                if(res.ok) status.innerText = "Saved to document.tex";
+                else status.innerText = "Save failed.";
+            })
+            .catch(() => status.innerText = "Server offline.");
+        }, 2000); 
+    }
+
+    // Listen to data changes
+    function enableAutosave() {
+        editor.on('change', () => {
+            processAndRender();
+            autoSaveBackend();
+        });
+    }
+
+    // Startup initialization: Fetch local document
+    fetch('/load')
+        .then(res => res.json())
+        .then(data => {
+            editor.setValue(data.text, -1); 
+            processAndRender();
+            status.innerText = "Document loaded from disk.";
+            editor.focus();
+            enableAutosave();
+        })
+        .catch(() => {
+            status.innerText = "Failed to load local file.";
+            enableAutosave();
+        });
+});
+    </script>
+</body>
+</html>
