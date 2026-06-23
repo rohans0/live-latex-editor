@@ -5,7 +5,7 @@ autosave, dark/light mode, vim keybindings
 ### How to use
 
 ```bash
-git clone <url>
-cd <directory>
+git clone https://github.com/rohans0/live-latex-editor
+cd live-latex-editor
 node server.js
 ```
