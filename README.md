@@ -1,4 +1,4 @@
-vibe coded live latex editor web demo using katex, inspired by the one on their website katex.org
+vibe coded live latex editor web demo using katex, inspired by the one on their website [katex.org]
 
 ### features
 - autosave
