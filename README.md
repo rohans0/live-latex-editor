@@ -1,11 +1,17 @@
-vibe coded live latex demo using katex
+vibe coded live latex editor web demo using katex, inspired by the one on their website katex.org
 
-autosave, dark/light mode, vim keybindings
+### features
+- autosave
+- backups every 3 minutes
+- dark/light mode
+- vim keybindings
+- edit multiple files
 
-### How to use
+### how to use
 
 ```bash
 git clone https://github.com/rohans0/live-latex-editor
 cd live-latex-editor
+node install
 node server.js
 ```

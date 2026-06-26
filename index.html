@@ -19,42 +19,140 @@
         /* --- Dark Mode (Default) Styles --- */
         body {
             font-family: system-ui, sans-serif;
-            margin: 0; padding: 20px;
-            background-color: #181a1b; color: #e8e6e3;
-        }
-        .status-bar {
-            font-size: 13px; font-family: monospace;
-            background-color: #202324; padding: 8px 15px;
-            margin-bottom: 15px; border-radius: 4px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #3a3f41;
+            margin: 0; padding: 0;
+            background-color: #000000; color: #e8e6e3;
+            height: 100vh;
+            overflow: hidden;
         }
         .layout {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 85vh;
+            display: flex;
+            height: 100vh;
+            position: relative;
+            background-color: #000000;
         }
         #editor {
             height: 100%;
+            width: 50%;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 16px;
-            border-radius: 6px;
-            border: 1px solid #545b5e;
+            border-radius: 0;
+            border: none;
+            background-color: #000000 !important;
         }
+        
+        /* Hidden Hitbox Resizer */
+        .resizer {
+            width: 10px;
+            margin: 0 -5px;
+            cursor: col-resize;
+            background-color: transparent; 
+            position: relative;
+            z-index: 50;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            width: 50%;
+            height: 100%;
+            position: relative;
+        }
+
         #preview {
-            height: 100%; padding: 15px; box-sizing: border-box;
-            background-color: #202324; border: 1px solid #3a3f41;
-            border-radius: 6px; overflow-y: auto; white-space: pre-wrap;
+            flex-grow: 1;
+            padding: 15px; box-sizing: border-box;
+            background-color: #000000;
+            border: none;
+            border-radius: 0;
+            overflow-y: auto; white-space: pre-wrap;
             color: #e8e6e3;
         }
+
+        /* 10px invisible sensor strip along the bottom border of the preview area */
+        .hover-sensor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: transparent;
+            z-index: 9;
+        }
+
+        /* Tiny Status Bar - Taskbar autohide configuration */
+        .status-bar {
+            font-size: 6px; font-family: monospace;
+            background-color: #222222;
+            color: #888888;
+            padding: 1px 4px;
+            display: none; /* hidden completely by default */
+            justify-content: space-between; align-items: center;
+            border: none;
+            height: 14px;
+            box-sizing: border-box;
+            z-index: 10;
+            cursor: pointer; /* clickable to toggle sticky layout */
+            user-select: none;
+        }
+
+        /* Reveal bar instantly without transitions when hovering over sensor zone OR bar itself */
+        .preview-container:has(.hover-sensor:hover) .status-bar,
+        .status-bar:hover {
+            display: flex;
+        }
+
+        /* Force show the bar permanently when pinned */
+        .status-bar.pinned {
+            display: flex !important;
+        }
+
+        .left-status-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: default;
+        }
+
+        /* Micro connection indicator dot */
+        #status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #a6e22e;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Dropdown styling - arrow completely removed */
+        #file-picker {
+            background: transparent;
+            color: #a6e22e;
+            border: none;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        #file-picker option {
+            background-color: #222222;
+            color: #e8e6e3;
+        }
+
         .katex-inline { display: inline-block; padding: 0 4px; }
         
         #theme-toggle {
-            background-color: #3a3f41; color: #e8e6e3;
-            border: 1px solid #545b5e; padding: 4px 12px;
-            border-radius: 4px; cursor: pointer;
-            font-family: system-ui, sans-serif; font-size: 12px;
+            background-color: transparent; color: #888888;
+            border: none; padding: 0 5px;
+            cursor: pointer;
+            font-family: system-ui, sans-serif; font-size: 11px;
         }
         #theme-toggle:hover {
-            background-color: #484e51;
+            color: #ffffff;
         }
         .ace_cursor {
             animation: none !important;
@@ -64,54 +162,70 @@
         body.light-mode {
             background-color: #fdf6e3; color: #000000;
         }
-        body.light-mode .status-bar {
-            background-color: #eee8d5; border-color: #93a1a1; color: #000000;
-        }
-        body.light-mode #save-status {
-            color: #2e6930 !important; /* Deep, clear forest green for crisp readability */
-            font-weight: bold;
-        }
         body.light-mode #editor {
-            border-color: #93a1a1;
+            background-color: #fdf6e3 !important;
         }
-        /* Target default text tokens in Ace to be rich, pure black instead of solarized grey */
+        body.light-mode .status-bar {
+            background-color: #e6dfcb;
+            color: #657b83;
+        }
+        body.light-mode #file-picker {
+            color: #2e6930;
+        }
+        body.light-mode #file-picker option {
+            background-color: #fdf6e3;
+            color: #000000;
+        }
         body.light-mode .ace_editor .ace_line {
             color: #000000 !important;
             font-weight: 500 !important;
         }
         body.light-mode #preview {
-            background-color: #fdf6e3; border-color: #93a1a1; color: #000000;
+            background-color: #fdf6e3; color: #000000;
         }
         body.light-mode #theme-toggle {
-            background-color: #eee8d5; color: #000000; border-color: #93a1a1;
+            color: #657b83;
         }
         body.light-mode #theme-toggle:hover {
-            background-color: #e4ddcb;
+            color: #000000;
         }
     </style>
 </head>
 <body>
-
-    <div class="status-bar">
-        <div>
-            <span id="save-status" style="color: #a6e22e; font-weight: bold;">Loading file...</span>
-        </div>
-        <button id="theme-toggle">🌙 Dark Mode</button>
-    </div>
     
-    <div class="layout">
+    <div class="layout" id="layout-container">
         <div id="editor"></div>
-        <div id="preview"></div>
+        <div class="resizer" id="drag-bar"></div>
+        
+        <div class="preview-container">
+            <div id="preview"></div>
+            <div class="hover-sensor"></div>
+            <div class="status-bar" id="statusbar-taskbar">
+                <div class="left-status-group" onclick="event.stopPropagation()">
+                    <div id="status-dot"></div>
+                    <select id="file-picker">
+                        <option value="document.tex">document.tex</option>
+                    </select>
+                </div>
+                <button id="theme-toggle" onclick="event.stopPropagation()">🌙 Dark Mode</button>
+            </div>
+        </div>
     </div>
 
     <script>
 document.addEventListener("DOMContentLoaded", () => {
     const preview = document.getElementById('preview');
-    const status = document.getElementById('save-status');
+    const filePicker = document.getElementById('file-picker');
+    const statusDot = document.getElementById('status-dot');
     const themeToggle = document.getElementById('theme-toggle');
+    const editorEl = document.getElementById('editor');
+    const previewContainer = document.querySelector('.preview-container');
+    const dragBar = document.getElementById('drag-bar');
+    const container = document.getElementById('layout-container');
+    const statusBar = document.getElementById('statusbar-taskbar');
     let saveTimeout;
 
-    // 1. Initialize Ace Editor Instance
+    // Initialize Ace Editor Instance
     const editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/latex");
@@ -119,20 +233,66 @@ document.addEventListener("DOMContentLoaded", () => {
     editor.setOption("cursorStyle", "block"); 
     editor.setOption("showPrintMargin", false);
     editor.session.setUseWrapMode(true); 
+    editor.setOption("showGutter", false);
+    editor.setOption("highlightActiveLine", false); // Disabled grey active line block background
 
-    // Extract the internal CodeMirror Vim emulator instance
-    const vim = ace.require("ace/keyboard/vim").CodeMirror.Vim;
-    vim.setOption('clipboard', 'unnamed');
+    // Windows Taskbar Sticky Lock Toggle Mechanism
+    statusBar.addEventListener('click', () => {
+        statusBar.classList.toggle('pinned');
+    });
 
-    // Instant Theme Toggle Logic
+    // Dynamic Resizer / Sliding Logic
+    let isDragging = false;
+
+    dragBar.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault(); 
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const containerRect = container.getBoundingClientRect();
+        const pointerX = e.clientX - containerRect.left;
+        
+        let percentage = (pointerX / containerRect.width) * 100;
+        if (percentage < 10) percentage = 10;
+        if (percentage > 90) percentage = 90;
+        
+        editorEl.style.width = `${percentage}%`;
+        previewContainer.style.width = `${100 - percentage}%`;
+        
+        editor.resize();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            document.body.style.cursor = 'default';
+            editor.resize();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        editor.resize();
+    });
+
+    // Theme Toggle Color Adjustments
     themeToggle.addEventListener('click', () => {
         const isLight = document.body.classList.toggle('light-mode');
         if (isLight) {
             editor.setTheme("ace/theme/solarized_light");
             themeToggle.innerText = "☀️ Light Mode";
+            if(statusDot.style.backgroundColor !== 'rgb(255, 68, 68)') {
+                statusDot.style.backgroundColor = '#2e6930';
+            }
         } else {
             editor.setTheme("ace/theme/monokai");
             themeToggle.innerText = "🌙 Dark Mode";
+            if(statusDot.style.backgroundColor !== 'rgb(255, 68, 68)') {
+                statusDot.style.backgroundColor = '#a6e22e';
+            }
         }
     });
 
@@ -142,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
         text = text.replace(/%.*(?:\r?\n|$)/g, '');
 
         // Process block math $$...$$
-        text = text.replace(/\$\$([\s\S]*?)\$\$\s*/g, (match, mathContent) => {
+        text = text.replace(/\ $\$([\s\S]*?)\$\$\s*/g, (match, mathContent) => {
             try {
                 return katex.renderToString(mathContent.trim(), { displayMode: true, throwOnError: false });
             } catch (err) { return `<span style="color:red">${err.message}</span>`; }
@@ -158,48 +318,90 @@ document.addEventListener("DOMContentLoaded", () => {
         preview.innerHTML = text;
     }
 
-    // Auto-save logic
+    // Completely silent auto-save logic 
     function autoSaveBackend() {
-        status.innerText = "Typing...";
         clearTimeout(saveTimeout);
-        
         saveTimeout = setTimeout(() => {
-            status.innerText = "Saving...";
             fetch('/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: editor.getValue() })
+                body: JSON.stringify({ 
+                    file: filePicker.value, 
+                    text: editor.getValue() 
+                })
             })
             .then(res => {
-                if(res.ok) status.innerText = "Saved to document.tex";
-                else status.innerText = "Save failed.";
+                if(res.ok) {
+                    statusDot.style.backgroundColor = document.body.classList.contains('light-mode') ? '#2e6930' : '#a6e22e';
+                } else {
+                    statusDot.style.backgroundColor = '#ff4444';
+                }
             })
-            .catch(() => status.innerText = "Server offline.");
+            .catch(() => {
+                statusDot.style.backgroundColor = '#ff4444'; 
+            }); 
         }, 2000); 
     }
 
-    // Listen to data changes
-    function enableAutosave() {
-        editor.on('change', () => {
-            processAndRender();
-            autoSaveBackend();
-        });
+    // Pull selected file text from backend
+    function loadFile(filename) {
+        fetch(`/load?file=${encodeURIComponent(filename)}`)
+            .then(res => {
+                if (!res.ok) throw new Error("File not found");
+                return res.json();
+            })
+            .then(data => {
+                statusDot.style.backgroundColor = document.body.classList.contains('light-mode') ? '#2e6930' : '#a6e22e';
+                editor.setValue(data.text || "", -1); 
+                processAndRender();
+                editor.focus();
+            })
+            .catch(() => {
+                statusDot.style.backgroundColor = '#ff4444';
+                editor.setValue("", -1); 
+                processAndRender();
+            });
     }
 
-    // Startup initialization: Fetch local document
-    fetch('/load')
-        .then(res => res.json())
-        .then(data => {
-            editor.setValue(data.text, -1); 
-            processAndRender();
-            status.innerText = "Document loaded from disk.";
-            editor.focus();
-            enableAutosave();
-        })
-        .catch(() => {
-            status.innerText = "Failed to load local file.";
-            enableAutosave();
-        });
+    // Fetch workspace files from backend and rebuild the dropdown menu
+    function discoverFiles() {
+        // Yes, this step requires an endpoint on your server script (like python/node) that handles GET '/files'
+        // and returns a JSON string array of filenames: e.g., ["document.tex", "chapter1.tex"]
+        fetch('/files')
+            .then(res => res.json())
+            .then(files => {
+                if(Array.isArray(files) && files.length > 0) {
+                    filePicker.innerHTML = ''; 
+                    files.forEach(file => {
+                        const opt = document.createElement('option');
+                        opt.value = file;
+                        opt.textContent = file.split('/').pop(); 
+                        filePicker.appendChild(opt);
+                    });
+                    loadFile(filePicker.value);
+                } else {
+                    loadFile(filePicker.value);
+                }
+            })
+            .catch(() => {
+                // If your backend doesn't have a '/files' route, it safely breaks out and stays on default choice
+                loadFile(filePicker.value);
+            });
+    }
+
+    // Switch files when changing the dropdown option
+    filePicker.addEventListener('change', () => {
+        loadFile(filePicker.value);
+    });
+
+    // Listen to editor data variations
+    editor.on('change', () => {
+        processAndRender();
+        autoSaveBackend();
+    });
+
+    // Initial sequence discovery check
+    discoverFiles();
 });
     </script>
 </body>
